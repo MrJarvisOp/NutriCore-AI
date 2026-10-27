@@ -1,0 +1,161 @@
+{
+  "foods": {
+    "breakfast": [
+      {"name": "Poha (1 plate)", "calories": 250, "protein": 6, "carbs": 40, "fat": 7, "fiber": 3, "category": "grain"},
+      {"name": "Upma (1 bowl)", "calories": 220, "protein": 5, "carbs": 35, "fat": 6, "fiber": 2, "category": "grain"},
+      {"name": "Dalia (1 bowl)", "calories": 180, "protein": 6, "carbs": 32, "fat": 2, "fiber": 5, "category": "grain"},
+      {"name": "Moong Chilla (2 pieces)", "calories": 240, "protein": 14, "carbs": 24, "fat": 8, "fiber": 4, "category": "protein"},
+      {"name": "Besan Chilla (2 pieces)", "calories": 260, "protein": 12, "carbs": 26, "fat": 10, "fiber": 4, "category": "protein"},
+      {"name": "Boiled Eggs (2 large)", "calories": 155, "protein": 13, "carbs": 1, "fat": 11, "fiber": 0, "category": "protein"},
+      {"name": "Paneer Bhurji (1 bowl)", "calories": 280, "protein": 18, "carbs": 8, "fat": 20, "fiber": 1, "category": "protein"},
+      {"name": "Idli + Sambar (2 idli)", "calories": 220, "protein": 8, "carbs": 38, "fat": 3, "fiber": 3, "category": "mixed"},
+      {"name": "Curd (1 bowl)", "calories": 120, "protein": 6, "carbs": 8, "fat": 6, "fiber": 0, "category": "dairy"},
+      {"name": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0, "fiber": 3, "category": "fruit"}
+    ],
+
+    "lunch": [
+      {"name": "Dal + Rice (1 plate)", "calories": 350, "protein": 14, "carbs": 55, "fat": 8, "fiber": 6, "category": "mixed"},
+      {"name": "Rajma + Rice (1 plate)", "calories": 420, "protein": 16, "carbs": 60, "fat": 10, "fiber": 10, "category": "legume"},
+      {"name": "Chole + Rice (1 plate)", "calories": 430, "protein": 15, "carbs": 62, "fat": 11, "fiber": 9, "category": "legume"},
+      {"name": "Roti + Sabzi (2 roti)", "calories": 300, "protein": 10, "carbs": 42, "fat": 9, "fiber": 7, "category": "mixed"},
+      {"name": "Paneer + Roti (2 roti)", "calories": 420, "protein": 22, "carbs": 35, "fat": 22, "fiber": 5, "category": "protein"},
+      {"name": "Chicken Curry + Rice", "calories": 450, "protein": 32, "carbs": 38, "fat": 18, "fiber": 2, "category": "protein"},
+      {"name": "Fish Curry + Rice", "calories": 400, "protein": 30, "carbs": 35, "fat": 15, "fiber": 2, "category": "protein"},
+      {"name": "Curd Rice (1 bowl)", "calories": 280, "protein": 8, "carbs": 42, "fat": 8, "fiber": 2, "category": "mixed"},
+      {"name": "Khichdi (1 bowl)", "calories": 250, "protein": 9, "carbs": 38, "fat": 6, "fiber": 4, "category": "mixed"},
+      {"name": "Soya Chunks Curry", "calories": 320, "protein": 28, "carbs": 20, "fat": 10, "fiber": 6, "category": "protein"}
+    ],
+
+    "dinner": [
+      {"name": "Roti + Dal (2 roti)", "calories": 320, "protein": 14, "carbs": 45, "fat": 8, "fiber": 6, "category": "mixed"},
+      {"name": "Roti + Paneer (2 roti)", "calories": 410, "protein": 22, "carbs": 35, "fat": 20, "fiber": 4, "category": "protein"},
+      {"name": "Chicken + Roti", "calories": 430, "protein": 35, "carbs": 30, "fat": 18, "fiber": 3, "category": "protein"},
+      {"name": "Egg Curry + Roti", "calories": 380, "protein": 20, "carbs": 28, "fat": 18, "fiber": 2, "category": "protein"},
+      {"name": "Soya Curry + Roti", "calories": 350, "protein": 25, "carbs": 32, "fat": 10, "fiber": 5, "category": "protein"},
+      {"name": "Dal Khichdi (1 bowl)", "calories": 280, "protein": 10, "carbs": 40, "fat": 7, "fiber": 5, "category": "mixed"},
+      {"name": "Paneer Bhurji", "calories": 280, "protein": 18, "carbs": 8, "fat": 20, "fiber": 1, "category": "protein"},
+      {"name": "Vegetable Pulao", "calories": 320, "protein": 8, "carbs": 48, "fat": 10, "fiber": 4, "category": "grain"},
+      {"name": "Light Sabzi + Curd", "calories": 220, "protein": 8, "carbs": 18, "fat": 10, "fiber": 4, "category": "mixed"},
+      {"name": "Fish Curry", "calories": 300, "protein": 28, "carbs": 8, "fat": 16, "fiber": 1, "category": "protein"}
+    ],
+
+    "snacks": [
+      {"name": "Roasted Chana (1 bowl)", "calories": 180, "protein": 10, "carbs": 25, "fat": 3, "fiber": 6, "category": "legume"},
+      {"name": "Makhana (1 bowl)", "calories": 150, "protein": 5, "carbs": 20, "fat": 5, "fiber": 2, "category": "snack"},
+      {"name": "Peanuts (1 handful)", "calories": 170, "protein": 7, "carbs": 6, "fat": 14, "fiber": 2, "category": "nuts"},
+      {"name": "Fruit Bowl", "calories": 120, "protein": 2, "carbs": 28, "fat": 0, "fiber": 4, "category": "fruit"},
+      {"name": "Buttermilk (1 glass)", "calories": 60, "protein": 3, "carbs": 5, "fat": 2, "fiber": 0, "category": "dairy"},
+      {"name": "Boiled Eggs (2)", "calories": 155, "protein": 13, "carbs": 1, "fat": 11, "fiber": 0, "category": "protein"},
+      {"name": "Sprouts Salad (1 bowl)", "calories": 140, "protein": 10, "carbs": 18, "fat": 2, "fiber": 5, "category": "protein"},
+      {"name": "Dry Fruits Mix", "calories": 200, "protein": 5, "carbs": 18, "fat": 14, "fiber": 3, "category": "nuts"},
+      {"name": "Banana Shake (1 glass)", "calories": 220, "protein": 8, "carbs": 35, "fat": 5, "fiber": 3, "category": "mixed"},
+      {"name": "Sattu Drink (1 glass)", "calories": 180, "protein": 10, "carbs": 24, "fat": 4, "fiber": 4, "category": "protein"}
+    ]
+  },
+  "meal_templates": {
+    "fat_loss": {
+      "meal_count": 4,
+      "calorie_distribution": [0.25, 0.35, 0.10, 0.30],
+      "protein_priority": true,
+      "low_fat_alternatives": true
+    },
+    "muscle_gain": {
+      "meal_count": 5,
+      "calorie_distribution": [0.20, 0.25, 0.15, 0.25, 0.15],
+      "protein_priority": true,
+      "carb_timing": "around_workouts"
+    },
+    "maintenance": {
+      "meal_count": 4,
+      "calorie_distribution": [0.25, 0.30, 0.15, 0.30],
+      "balanced": true
+    }
+  },
+
+  "medical_food_restrictions": {
+    "high_cholesterol": {
+      "avoid": [
+        "fried_poori",
+        "paratha_with_extra_ghee",
+        "full_fat_dairy",
+        "butter_chicken_daily",
+        "processed_fried_snacks"
+      ],
+      "prefer": [
+        "oats",
+        "dal",
+        "fish",
+        "green_vegetables",
+        "roti",
+        "brown_rice"
+      ],
+      "max_fat_percent": 25
+    },
+
+    "diabetes": {
+      "avoid": [
+        "white_bread",
+        "maida_items",
+        "sweets",
+        "soft_drinks",
+        "sugary_tea",
+        "white_rice_excess"
+      ],
+      "prefer": [
+        "low_gi_foods",
+        "dal",
+        "roti",
+        "oats",
+        "sprouts",
+        "lean_protein"
+      ],
+      "max_carb_per_meal": 45
+    },
+
+    "hypertension": {
+      "avoid": [
+        "pickles",
+        "papad",
+        "namkeen",
+        "processed_snacks",
+        "instant_noodles",
+        "high_salt_foods"
+      ],
+      "prefer": [
+        "banana",
+        "coconut_water",
+        "fruits",
+        "vegetables",
+        "low_sodium_home_food"
+      ],
+      "max_sodium_mg": 1500
+    },
+
+    "anemia": {
+      "avoid": [
+        "tea_with_meals",
+        "coffee_with_meals",
+        "calcium_with_iron"
+      ],
+      "prefer": [
+        "iron_rich_foods",
+        "vitamin_c_with_iron",
+        "palak",
+        "rajma",
+        "black_chana",
+        "eggs"
+      ],
+      "iron_foods": [
+        "palak",
+        "rajma",
+        "black_chana",
+        "dates",
+        "raisins",
+        "jaggery",
+        "eggs",
+        "chicken",
+        "fish"
+      ]
+    }
+  }
+}

@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Building Your Plan…{% endblock %}
+{% block extra_styles %}
+.proc-page{min-height:82vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center}
+.proc-title{font-size:clamp(26px,5vw,46px);font-weight:800;letter-spacing:-.04em;margin-bottom:12px}
+.proc-sub{font-size:15px;color:var(--text-secondary);margin-bottom:52px;max-width:440px;line-height:1.7}
+
+/* Node flow */
+.flow{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:0;margin-bottom:52px}
+.fn{display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 5px;opacity:.2;transition:opacity .4s,transform .4s}
+.fn.active{opacity:1;transform:scale(1.1)}
+.fn.done{opacity:.65}
+.fn__dot{width:42px;height:42px;border-radius:var(--r-md);display:grid;place-items:center;font-size:18px;background:var(--bg-raised);border:1px solid var(--border-dim);position:relative;transition:all .35s}
+.fn.active .fn__dot{background:var(--cyan-dim);border-color:rgba(0,212,255,.45);box-shadow:0 0 22px rgba(0,212,255,.2)}
+.fn.done .fn__dot{background:var(--green-dim);border-color:rgba(0,255,157,.3)}
+.fn.error .fn__dot{background:var(--red-dim);border-color:rgba(255,77,106,.3)}
+.fn.active .fn__dot::before{content:'';position:absolute;inset:-5px;border-radius:calc(var(--r-md) + 5px);border:2px solid transparent;border-top-color:var(--cyan);border-right-color:rgba(0,212,255,.3);animation:spin .9s linear infinite}
+.fn__label{font-family:var(--font-mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);white-space:nowrap}
+.fn.active .fn__label{color:var(--cyan)}
+.fn.done .fn__label{color:var(--green)}
+.f-arrow{color:var(--border-dim);font-size:18px;padding-bottom:18px;margin:0 -3px}
+
+/* Terminal */
+.terminal{width:100%;max-width:700px;background:var(--bg-deep);border:1px solid var(--border-dim);border-radius:var(--r-lg);overflow:hidden;text-align:left}
+.term-hdr{display:flex;align-items:center;gap:7px;padding:11px 16px;background:var(--bg-raised);border-bottom:1px solid var(--border-dim)}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-title{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-left:4px;flex:1}
+.term-badge{font-family:var(--font-mono);font-size:9px;padding:2px 7px;border-radius:999px;background:var(--green-dim);border:1px solid rgba(0,255,157,.2);color:var(--green);letter-spacing:.08em}
+.term-body{padding:14px 16px;height:220px;overflow-y:auto;font-family:var(--font-mono);font-size:12px;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border-soft) transparent}
+.term-body::-webkit-scrollbar{width:4px}
+.term-body::-webkit-scrollbar-thumb{background:var(--border-soft);border-radius:2px}
+.log-row{display:flex;gap:10px;animation:fadeUp .25s both}
+.log-row__time{color:var(--text-muted);flex-shrink:0}
+.log-row__node{color:var(--cyan);flex-shrink:0;min-width:80px}
+.log-row__msg{color:var(--text-secondary)}
+.log-row--ok .log-row__msg{color:var(--green)}
+.log-row--warn .log-row__msg{color:var(--amber)}
+.log-row--error .log-row__msg{color:var(--red)}
+.log-row--done .log-row__msg{color:var(--cyan);font-weight:600}
+
+/* Progress bar */
+.progress-wrap{width:100%;max-width:700px;margin-top:20px}
+.prog-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:6px}
+.prog-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,rgba(0,212,255,.3),var(--cyan));border-radius:2px;transition:width .6s ease;width:0}
+
+/* User summary pills */
+.user-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+
+/* Error state */
+.error-state{display:none;flex-direction:column;align-items:center;gap:16px;margin-top:32px}
+.error-state.visible{display:flex}
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+  <div class="proc-page">
+    <p class="proc-title animate-up"><span class="text-cyan">⚡</span> Building Your Plan</p>
+    <p class="proc-sub animate-up delay-1">
+      Running 9-node LangGraph pipeline — health engine, Tavily web search, diet planner, validation loop and AI recommendations
+    </p>
+
+    <!-- User summary pills -->
+    <div class="user-pills animate-up delay-1">
+      <span class="tag tag--cyan">Goal: {{ goal | replace('_',' ') | upper }}</span>
+      <span class="tag tag--dim">Age {{ age }}</span>
+      <span class="tag tag--dim">{{ weight }} kg · {{ height }} cm</span>
+      {% if has_pdf %}<span class="tag tag--violet">📋 Medical PDF uploaded</span>{% endif %}
+      <span class="tag tag--violet">🔍 Tavily web search enabled</span>
+    </div>
+
+    <!-- Animated pipeline nodes -->
+    <div class="flow animate-up delay-2" id="flowNodes">
+      {% set steps = [("📥","Input"),("📄","PDF"),("🧠","Parser"),("⚕️","Engine"),("🔍","WebSearch"),("🥗","Diet"),("🏋️","Exercise"),("✅","Validate"),("✨","AI")] %}
+      {% for icon,label in steps %}
+        <div class="fn" id="fn-{{loop.index}}">
+          <div class="fn__dot">{{icon}}</div>
+          <span class="fn__label">{{label}}</span>
+        </div>
+        {% if not loop.last %}<span class="f-arrow">›</span>{% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-wrap animate-up delay-2">
+      <div class="prog-label">
+        <span id="progLabel">Initialising pipeline…</span>
+        <span id="progPct">0%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+
+    <!-- Live log terminal -->
+    <div class="terminal animate-up delay-3 mt-24">
+      <div class="term-hdr">
+        <div class="term-dot" style="background:#ff5f57"></div>
+        <div class="term-dot" style="background:#ffbd2e"></div>
+        <div class="term-dot" style="background:#28c840"></div>
+        <span class="term-title">nutricore · pipeline.log</span>
+        <span class="term-badge" id="termBadge">RUNNING</span>
+      </div>
+      <div class="term-body" id="termBody"></div>
+    </div>
+
+    <!-- Error fallback (shown only if SSE gives error) -->
+    <div class="error-state" id="errorState">
+      <div class="alert alert--danger" style="max-width:600px;text-align:left">
+        <span class="alert__icon">⚠</span>
+        <div>
+          <strong>Pipeline error</strong>
+          <div id="errorMsg" class="mt-4"></div>
+        </div>
+      </div>
+      <a href="/plan" class="btn btn--outline">↩ Try Again</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  const JOB_ID  = "{{ job_id }}";
+  const nodes   = document.querySelectorAll('.fn');
+  const termBody= document.getElementById('termBody');
+  const progFill= document.getElementById('progFill');
+  const progLbl = document.getElementById('progLabel');
+  const progPct = document.getElementById('progPct');
+  const badge   = document.getElementById('termBadge');
+  const errState= document.getElementById('errorState');
+  const errMsg  = document.getElementById('errorMsg');
+
+  /* Map node names → flow-node index (1-based) */
+  const NODE_MAP = {
+    init:       1, input:      1,
+    pdf:        2,
+    parser:     3,
+    health:     4,
+    search:     5,
+    diet:       6,
+    exercise:   7,
+    validation: 8,
+    llm:        9, done: 9,
+    error:      0,
+  };
+
+  let currentNode = 0;
+  const TOTAL_NODES = nodes.length;
+
+  function setNode(idx) {
+    if (idx <= 0 || idx === currentNode) return;
+    // mark previous as done
+    for (let i = 0; i < idx - 1; i++) {
+      nodes[i].classList.remove('active');
+      nodes[i].classList.add('done');
+    }
+    nodes[idx - 1].classList.add('active');
+    nodes[idx - 1].classList.remove('done');
+    currentNode = idx;
+    const pct = Math.round((idx / TOTAL_NODES) * 100);
+    progFill.style.width = pct + '%';
+    progPct.textContent  = pct + '%';
+  }
+
+  function addLog(node, level, message) {
+    const now   = new Date();
+    const time  = now.toTimeString().slice(0,8);
+    const row   = document.createElement('div');
+    row.className = `log-row log-row--${level}`;
+    row.innerHTML =
+      `<span class="log-row__time">${time}</span>` +
+      `<span class="log-row__node">[${node}]</span>` +
+      `<span class="log-row__msg">${escHtml(message)}</span>`;
+    termBody.appendChild(row);
+    termBody.scrollTop = termBody.scrollHeight;
+    // Update progress label
+    progLbl.textContent = message.slice(0, 55) + (message.length > 55 ? '…' : '');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function markAllDone() {
+    nodes.forEach(n => { n.classList.remove('active'); n.classList.add('done'); });
+    progFill.style.width = '100%';
+    progPct.textContent  = '100%';
+    badge.textContent    = 'DONE';
+    badge.style.background = 'var(--green-dim)';
+    badge.style.color      = 'var(--green)';
+    badge.style.borderColor = 'rgba(0,255,157,.3)';
+  }
+
+  function showError(msg) {
+    badge.textContent    = 'ERROR';
+    badge.style.background = 'var(--red-dim)';
+    badge.style.color      = 'var(--red)';
+    badge.style.borderColor = 'rgba(255,77,106,.3)';
+    nodes.forEach((n, i) => {
+      if (n.classList.contains('active')) {
+        n.classList.remove('active');
+        n.classList.add('error');
+      }
+    });
+    errMsg.textContent = msg;
+    errState.classList.add('visible');
+  }
+
+  /* Open SSE connection */
+  const es = new EventSource('/plan/stream/' + JOB_ID);
+
+  es.addEventListener('log', function(e) {
+    const data = JSON.parse(e.data);
+    const nodeIdx = NODE_MAP[data.node] || currentNode;
+    setNode(nodeIdx);
+    addLog(data.node, data.level, data.message);
+  });
+
+  es.addEventListener('done', function(e) {
+    const data = JSON.parse(e.data);
+    markAllDone();
+    addLog('done', 'done', 'Plan ready — redirecting…');
+    es.close();
+    setTimeout(function(){ window.location.href = data.redirect; }, 900);
+  });
+
+  es.addEventListener('error', function(e) {
+    let msg = 'Connection lost';
+    try { msg = JSON.parse(e.data).message; } catch(_){}
+    showError(msg);
+    addLog('error', 'error', msg);
+    es.close();
+  });
+
+  es.onerror = function() {
+    if (es.readyState === EventSource.CLOSED) return;
+    showError('SSE connection dropped — please try again.');
+    addLog('error', 'error', 'SSE connection dropped');
+    es.close();
+  };
+
+  /* Activate first node immediately */
+  setNode(1);
+  addLog('init', 'info', 'Pipeline started — connecting to server…');
+})();
+</script>
+{% endblock %}

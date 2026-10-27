@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Health Plan{% endblock %}
+{% block extra_styles %}
+.hero{padding:72px 0 56px;text-align:center}
+.hero__eye{font-family:var(--font-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px}
+.hero__eye::before,.hero__eye::after{content:'';flex:1;max-width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--cyan))}
+.hero__eye::after{background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero__title{font-size:clamp(38px,6vw,76px);font-weight:800;letter-spacing:-.04em;line-height:1.05;margin-bottom:18px}
+.hero__title em{font-style:normal;background:linear-gradient(135deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero__sub{font-size:16px;color:var(--text-secondary);max-width:520px;margin:0 auto 40px;line-height:1.7}
+
+.pipeline{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;max-width:920px;margin:0 auto 56px;padding:20px;background:var(--bg-surface);border:1px solid var(--border-dim);border-radius:var(--r-xl)}
+.p-step{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 10px}
+.p-dot{width:34px;height:34px;border-radius:var(--r-md);display:grid;place-items:center;font-size:15px;background:var(--bg-raised);border:1px solid var(--border-dim)}
+.p-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+.p-arrow{color:var(--border-soft);font-size:16px;padding-bottom:16px;margin:0 -4px}
+
+.form-wrap{max-width:860px;margin:0 auto;padding-bottom:80px}
+.fsec{margin-bottom:28px}
+.fsec__hdr{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border-dim)}
+.fsec__num{width:24px;height:24px;border-radius:50%;background:var(--cyan-dim);border:1px solid rgba(0,212,255,.3);display:grid;place-items:center;font-family:var(--font-mono);font-size:11px;color:var(--cyan);flex-shrink:0}
+.fsec__title{font-size:15px;font-weight:700}
+.fsec__desc{font-size:11px;color:var(--text-muted);margin-left:auto;font-family:var(--font-mono)}
+
+.goal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.goal-card{position:relative}
+.goal-card input[type=radio]{position:absolute;opacity:0;width:0}
+.goal-card__lbl{display:flex;flex-direction:column;align-items:center;gap:7px;padding:18px 14px;background:var(--bg-raised);border:1px solid var(--border-dim);border-radius:var(--r-lg);cursor:pointer;transition:all .2s;text-align:center}
+.goal-card__lbl:hover{border-color:var(--border-soft)}
+.goal-card input:checked+.goal-card__lbl{border-color:var(--cyan);background:var(--cyan-dim);box-shadow:0 0 20px rgba(0,212,255,.1)}
+.goal-card__emoji{font-size:26px}
+.goal-card__name{font-weight:700;font-size:13px}
+.goal-card__desc{font-size:11px;color:var(--text-muted);line-height:1.4}
+
+.act-bar{display:flex;gap:8px}
+.act-btn{flex:1;padding:9px 7px;background:var(--bg-raised);border:1px solid var(--border-dim);border-radius:var(--r-md);cursor:pointer;text-align:center;transition:all .2s;position:relative}
+.act-btn input{position:absolute;opacity:0}
+.act-btn__name{font-size:12px;font-weight:600;color:var(--text-secondary);display:block}
+.act-btn__sub{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);letter-spacing:.04em}
+.act-btn:has(input:checked){border-color:var(--green);background:var(--green-dim)}
+.act-btn:has(input:checked) .act-btn__name{color:var(--green)}
+
+.upload-zone{border:2px dashed var(--border-dim);border-radius:var(--r-lg);padding:28px;text-align:center;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.upload-zone:hover{border-color:var(--border-soft);background:var(--cyan-dim)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone__icon{font-size:32px;margin-bottom:10px}
+.upload-zone__title{font-size:14px;font-weight:600}
+.upload-zone__sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+
+.submit-area{display:flex;align-items:center;gap:16px;padding-top:8px}
+.btn--submit{background:linear-gradient(135deg,#00aacc,var(--cyan));color:#001a22;font-weight:700;font-size:15px;padding:13px 38px;border-radius:var(--r-md);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px;box-shadow:0 4px 24px rgba(0,212,255,.3);transition:all .2s;font-family:var(--font-display)}
+.btn--submit:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,212,255,.45)}
+.submit-note{font-size:11px;color:var(--text-muted);line-height:1.5;font-family:var(--font-mono)}
+
+.tavily-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;padding:3px 10px;border-radius:999px;background:var(--violet-dim);border:1px solid rgba(157,127,255,.25);color:var(--violet);margin-bottom:16px}
+
+@media(max-width:600px){.goal-grid{grid-template-columns:1fr}.act-bar{flex-wrap:wrap}.pipeline{display:none}}
+{% endblock %}
+{% block content %}
+<div class="wrapper">
+  <section class="hero animate-up">
+    <div class="hero__eye">AI-Powered · Tavily Web Search · LangGraph Pipeline</div>
+    <h1 class="hero__title">Your <em>Personalised</em><br>Health Blueprint</h1>
+    <p class="hero__sub">Enter your biometrics and optionally upload a lab report. Our pipeline fetches live nutrition research, runs deterministic health calculations, and builds a medically-aware plan.</p>
+    <div class="tavily-badge">🔍 Tavily web search enriches every plan with current evidence</div>
+  </section>
+
+  <!-- Pipeline diagram -->
+  <div class="pipeline animate-up delay-1">
+    {% for icon,label in [("📥","Input"),("📄","PDF"),("🧠","Parser"),("⚕️","Engine"),("🔍","Web Search"),("🥗","Diet"),("🏋️","Exercise"),("✅","Validate"),("✨","AI")] %}
+      <div class="p-step">
+        <div class="p-dot">{{icon}}</div>
+        <span class="p-label">{{label}}</span>
+      </div>{% if not loop.last %}<span class="p-arrow">›</span>{% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="form-wrap">
+    {% if errors is defined and errors %}
+      <div class="alert alert--danger mb-24 animate-up">
+        <span class="alert__icon">⚠</span>
+        <div>{% for e in errors %}<div>{{e}}</div>{% endfor %}</div>
+      </div>
+    {% endif %}
+
+    <form method="POST" action="/plan" enctype="multipart/form-data" id="healthForm">
+
+      <!-- 01 Biometrics -->
+      <div class="card animate-up delay-2 fsec">
+        <div class="fsec__hdr"><span class="fsec__num">01</span><span class="fsec__title">Biometrics</span><span class="fsec__desc">Physical data</span></div>
+        <div class="grid-4 gap-16">
+          <div class="form-group"><label class="form-label" for="age">Age</label><input class="form-input" id="age" name="age" type="number" min="10" max="100" placeholder="30" value="{{form.age|default('')}}" required/></div>
+          <div class="form-group"><label class="form-label" for="weight">Weight <span class="text-muted">(kg)</span></label><input class="form-input" id="weight" name="weight" type="number" step="0.1" min="30" max="300" placeholder="75.0" value="{{form.weight|default('')}}" required/></div>
+          <div class="form-group"><label class="form-label" for="height">Height <span class="text-muted">(cm)</span></label><input class="form-input" id="height" name="height" type="number" step="0.1" min="100" max="250" placeholder="175" value="{{form.height|default('')}}" required/></div>
+          <div class="form-group"><label class="form-label" for="gender">Gender</label>
+            <select class="form-select" id="gender" name="gender">
+              <option value="male" {{'selected' if form.gender|default('male')=='male'}}>Male</option>
+              <option value="female" {{'selected' if form.gender|default('')=='female'}}>Female</option>
+              <option value="other" {{'selected' if form.gender|default('')=='other'}}>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02 Goal -->
+      <div class="card animate-up delay-3 fsec">
+        <div class="fsec__hdr"><span class="fsec__num">02</span><span class="fsec__title">Goal</span><span class="fsec__desc">Drives calorie &amp; macro targets</span></div>
+        <div class="goal-grid">
+          {% for val,emoji,name,desc in [("fat_loss","🔥","Fat Loss","Deficit · high protein · cardio"),("muscle_gain","💪","Muscle Gain","Surplus · strength training · 5 meals"),("maintenance","⚖️","Maintenance","Balanced · 4 days · WHO-aligned")] %}
+          <div class="goal-card">
+            <input type="radio" name="goal" id="goal_{{val}}" value="{{val}}" {{'checked' if form.goal|default('fat_loss')==val}}/>
+            <label class="goal-card__lbl" for="goal_{{val}}">
+              <span class="goal-card__emoji">{{emoji}}</span>
+              <span class="goal-card__name">{{name}}</span>
+              <span class="goal-card__desc">{{desc}}</span>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- 03 Activity -->
+      <div class="card animate-up delay-3 fsec">
+        <div class="fsec__hdr"><span class="fsec__num">03</span><span class="fsec__title">Activity Level</span><span class="fsec__desc">Affects TDEE</span></div>
+        <div class="act-bar">
+          {% for val,name,sub in [("sedentary","Sedentary","Desk job"),("light","Light","1-3×/wk"),("moderate","Moderate","3-5×/wk"),("active","Active","6-7×/wk"),("very_active","Very Active","Twice/day")] %}
+          <div class="act-btn">
+            <input type="radio" name="activity_level" id="act_{{val}}" value="{{val}}" {{'checked' if form.activity_level|default('moderate')==val}}/>
+            <label style="cursor:pointer;display:block" for="act_{{val}}">
+              <span class="act-btn__name">{{name}}</span>
+              <span class="act-btn__sub">{{sub}}</span>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- 04 Preferences -->
+      <div class="card animate-up delay-4 fsec">
+        <div class="fsec__hdr"><span class="fsec__num">04</span><span class="fsec__title">Dietary Preferences &amp; Allergies</span><span class="fsec__desc">Optional</span></div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label" for="dietary_pref">Preferences</label><input class="form-input" id="dietary_pref" name="dietary_pref" placeholder="vegetarian, vegan, gluten-free" value="{{form.dietary_pref|default('')}}"/><p class="mt-4 text-muted" style="font-size:11px;font-family:var(--font-mono)">Comma-separated</p></div>
+          <div class="form-group"><label class="form-label" for="allergies">Allergies</label><input class="form-input" id="allergies" name="allergies" placeholder="nuts, shellfish, dairy" value="{{form.allergies|default('')}}"/><p class="mt-4 text-muted" style="font-size:11px;font-family:var(--font-mono)">Comma-separated</p></div>
+        </div>
+      </div>
+
+      <!-- 05 Medical PDF -->
+      <div class="card animate-up delay-5 fsec">
+        <div class="fsec__hdr"><span class="fsec__num">05</span><span class="fsec__title">Medical Report</span><span class="fsec__desc">Optional</span></div>
+        <div class="alert alert--info mb-16">
+          <span class="alert__icon">ℹ</span>
+          <div>Upload a PDF blood panel for medical-aware recommendations. Parsed fields: cholesterol, HbA1c, hemoglobin, iron, thyroid, vitamins, liver &amp; kidney markers. Deleted immediately after processing.</div>
+        </div>
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" name="medical_pdf" accept=".pdf" id="pdfInput"/>
+          <div class="upload-zone__icon">📋</div>
+          <div class="upload-zone__title" id="uploadTitle">Drop your lab report here</div>
+          <div class="upload-zone__sub">PDF only · deleted after processing</div>
+          <div class="flex gap-8 justify-center mt-12 flex-wrap">
+            <span class="tag tag--dim">Text PDF</span><span class="tag tag--dim">Scanned + OCR</span><span class="tag tag--dim">20+ biomarkers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="animate-up delay-6 submit-area">
+        <button type="submit" class="btn--submit" id="submitBtn">⚡ Generate Health Plan</button>
+        <p class="submit-note">LangGraph pipeline · Tavily web search<br>Deterministic engine · Medical-aware · Validated</p>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Show filename on PDF select
+  document.getElementById('pdfInput').addEventListener('change', function(){
+    const f = this.files[0];
+    if(f){ document.getElementById('uploadTitle').textContent = '✓ ' + f.name; document.getElementById('uploadTitle').style.color='var(--green)'; }
+  });
+  // Disable submit button after click to prevent double-submit
+  document.getElementById('healthForm').addEventListener('submit', function(){
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Submitting…';
+  });
+</script>
+{% endblock %}

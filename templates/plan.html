@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+{% block title %}Health Plan · {{ plan.user_summary.goal | replace('_',' ') | title }}{% endblock %}
+
+{% block extra_styles %}
+/* ── Hero ─────────────────────────────────────── */
+.plan-hero{padding:52px 0 36px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.plan-hero__eye{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+.plan-hero__title{font-size:clamp(30px,5vw,54px);font-weight:800;letter-spacing:-.04em;line-height:1.1}
+.plan-hero__title em{font-style:normal;background:linear-gradient(135deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.plan-hero__meta{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.plan-hero__actions{display:flex;gap:10px;flex-shrink:0;align-self:flex-start;padding-top:10px}
+
+/* ── Summary bar ──────────────────────────────── */
+.sum-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border-dim);border:1px solid var(--border-dim);border-radius:var(--r-lg);overflow:hidden;margin-bottom:36px}
+.sum-bar__cell{background:var(--bg-surface);padding:18px 22px;transition:background .2s}
+.sum-bar__cell:hover{background:var(--bg-raised)}
+@media(max-width:600px){.sum-bar{grid-template-columns:1fr 1fr}}
+
+/* ── Two-column layout ────────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+.sidebar__sticky{position:sticky;top:76px;display:flex;flex-direction:column;gap:16px}
+@media(max-width:1024px){.two-col{grid-template-columns:1fr}}
+
+/* ── BMI ring ─────────────────────────────────── */
+.bmi-ring{position:relative;width:86px;height:86px;flex-shrink:0}
+.bmi-ring svg{transform:rotate(-90deg)}
+.bmi-ring__center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bmi-ring__val{font-size:17px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.bmi-ring__lbl{font-family:var(--font-mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-top:1px}
+
+/* ── Meals ────────────────────────────────────── */
+.meal-list{display:flex;flex-direction:column;gap:14px}
+.meal-card{background:var(--bg-raised);border:1px solid var(--border-dim);border-radius:var(--r-lg);overflow:hidden;transition:border-color .2s}
+.meal-card:hover{border-color:var(--border-soft)}
+.meal-card__hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;cursor:pointer;gap:10px;user-select:none}
+.meal-card__left{display:flex;align-items:center;gap:10px}
+.meal-card__time{font-family:var(--font-mono);font-size:11px;color:var(--cyan);background:var(--cyan-dim);border:1px solid rgba(0,212,255,.2);padding:2px 7px;border-radius:var(--r-sm)}
+.meal-card__name{font-weight:700;font-size:14px}
+.meal-card__macros{display:flex;align-items:center;gap:14px;margin-left:auto}
+.meal-card__macro{font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);white-space:nowrap}
+.meal-card__macro strong{color:var(--text-primary);font-weight:600}
+.meal-card__toggle{color:var(--text-muted);font-size:11px;transition:transform .2s;flex-shrink:0}
+.meal-card.expanded .meal-card__toggle{transform:rotate(180deg)}
+.meal-card__body{display:none;border-top:1px solid var(--border-dim)}
+.meal-card.expanded .meal-card__body{display:block}
+.food-table{width:100%;border-collapse:collapse}
+.food-table th{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:9px 18px;text-align:left;border-bottom:1px solid var(--border-dim)}
+.food-table th:not(:first-child){text-align:right}
+.food-table td{padding:9px 18px;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border-dim)}
+.food-table tr:last-child td{border-bottom:none}
+.food-table td:not(:first-child){text-align:right;font-family:var(--font-mono);font-size:11px}
+.food-table td:first-child{color:var(--text-primary)}
+.food-table tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── Week grid ────────────────────────────────── */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+@media(max-width:900px){.week-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:600px){.week-grid{grid-template-columns:repeat(2,1fr)}}
+.day-card{background:var(--bg-raised);border:1px solid var(--border-dim);border-radius:var(--r-md);padding:13px 11px;transition:border-color .2s,box-shadow .2s;cursor:pointer}
+.day-card:hover{border-color:var(--violet);box-shadow:0 0 18px rgba(157,127,255,.1)}
+.day-card--rest{opacity:.4}
+.day-card__day{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px}
+.day-card__focus{font-size:11px;font-weight:600;line-height:1.3;margin-bottom:7px}
+.day-card__int{font-family:var(--font-mono);font-size:9px;padding:2px 5px;border-radius:var(--r-sm)}
+.int--high{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,106,.2)}
+.int--moderate{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,183,0,.2)}
+.int--low{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,255,157,.2)}
+.int--none{background:var(--bg-surface);color:var(--text-muted);border:1px solid var(--border-dim)}
+
+/* ── Exercise items ───────────────────────────── */
+.ex-list{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.ex-item{display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--bg-surface);border:1px solid var(--border-dim);border-radius:var(--r-sm)}
+.ex-item__name{flex:1;font-size:13px}
+.ex-item__detail{font-family:var(--font-mono);font-size:11px;color:var(--text-secondary)}
+
+/* ── Lab biomarkers ───────────────────────────── */
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.lab-item{background:var(--bg-raised);border:1px solid var(--border-dim);border-radius:var(--r-md);padding:13px 15px;transition:border-color .2s}
+.lab-item__name{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px}
+.lab-item__val{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.lab-item__unit{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);margin-left:2px}
+.lab-item--normal{border-color:rgba(0,255,157,.15)}.lab-item--normal .lab-item__val{color:var(--green)}
+.lab-item--warning{border-color:rgba(255,183,0,.2)}.lab-item--warning .lab-item__val{color:var(--amber)}
+.lab-item--alert{border-color:rgba(255,77,106,.2)}.lab-item--alert .lab-item__val{color:var(--red)}
+
+/* ── Recommendations ──────────────────────────── */
+.rec-list{display:flex;flex-direction:column;gap:9px}
+.rec-item{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;background:var(--bg-raised);border:1px solid var(--border-dim);border-radius:var(--r-md);transition:border-color .2s,transform .2s}
+.rec-item:hover{border-color:var(--border-soft);transform:translateX(3px)}
+.rec-item__num{font-family:var(--font-mono);font-size:11px;color:var(--cyan);flex-shrink:0;padding-top:1px}
+.rec-item__text{font-size:13px;color:var(--text-secondary);line-height:1.5}
+
+/* ── Notes ────────────────────────────────────── */
+.note-item{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--text-secondary);line-height:1.5}
+.note-item::before{content:'→';color:var(--cyan);flex-shrink:0;font-family:var(--font-mono)}
+
+/* ── Web search context ───────────────────────── */
+.ws-card{background:var(--violet-dim);border:1px solid rgba(157,127,255,.2);border-radius:var(--r-md);padding:14px 16px;margin-bottom:14px}
+.ws-card__label{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--violet);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.ws-card__text{font-size:12px;color:var(--text-secondary);line-height:1.55}
+
+/* ── Macro donut ──────────────────────────────── */
+.macro-wrap{display:flex;align-items:center;gap:20px}
+.macro-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.macro-legend__item{display:flex;align-items:center;gap:7px}
+.macro-legend__dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.macro-legend__name{font-size:12px;color:var(--text-secondary);flex:1}
+.macro-legend__val{font-family:var(--font-mono);font-size:12px;color:var(--text-primary)}
+
+/* ── Pipeline audit ───────────────────────────── */
+.audit-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg-raised);border-radius:var(--r-sm);border:1px solid var(--border-dim)}
+.audit-row__node{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);flex:1}
+.audit-row__detail{font-size:11px;color:var(--text-secondary)}
+.audit-row__ok{color:var(--green);font-size:12px}
+
+/* ── Validation badge ─────────────────────────── */
+.val-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11px;padding:3px 10px;border-radius:999px}
+.val-badge--pass{background:var(--green-dim);border:1px solid rgba(0,255,157,.3);color:var(--green)}
+.val-badge--warn{background:var(--amber-dim);border:1px solid rgba(255,183,0,.3);color:var(--amber)}
+{% endblock %}
+
+{% block content %}
+{% set m = plan.health_metrics %}
+{% set d = plan.diet_plan %}
+{% set e = plan.exercise_plan %}
+{% set med = plan.medical_data %}
+{% set ws = plan.web_search_context %}
+
+<div class="wrapper">
+
+  <!-- Hero -->
+  <div class="plan-hero animate-up">
+    <div>
+      <div class="plan-hero__eye">Health Plan Generated</div>
+      <h1 class="plan-hero__title">
+        <em>{{ plan.user_summary.goal | replace('_',' ') | title }}</em><br>Protocol
+      </h1>
+      <div class="plan-hero__meta">
+        <span class="tag tag--cyan">⚡ {{ plan.user_summary.goal | replace('_',' ') | upper }}</span>
+        <span class="tag tag--dim">Age {{ plan.user_summary.age }}</span>
+        <span class="tag tag--dim">{{ plan.user_summary.weight_kg }}kg · {{ plan.user_summary.height_cm }}cm</span>
+        <span class="tag tag--dim">{{ plan.user_summary.activity_level | replace('_',' ') | title }}</span>
+        {% if ws %}<span class="tag tag--violet">🔍 Web-Enriched</span>{% endif %}
+        {% if plan.validation_result %}
+          {% if plan.validation_result.passed %}
+            <span class="val-badge val-badge--pass">✓ Validated</span>
+          {% else %}
+            <span class="val-badge val-badge--warn">⚠ Reviewed</span>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    <div class="plan-hero__actions">
+      <a href="/plan" class="btn btn--outline">↩ New Plan</a>
+      <button onclick="window.print()" class="btn btn--primary">↓ Export</button>
+    </div>
+  </div>
+
+  <!-- Warnings -->
+  {% if plan.warnings %}
+    <div class="mb-24 animate-up delay-1 flex flex-col gap-8">
+      {% for w in plan.warnings %}
+        <div class="alert alert--warning"><span class="alert__icon">⚠</span><div>{{w}}</div></div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Summary bar -->
+  <div class="sum-bar animate-up delay-1">
+    <div class="sum-bar__cell">
+      <div class="stat stat--cyan">
+        <span class="stat__label">Target Calories</span>
+        <span class="stat__value">{{ m.target_calories }}<span class="stat__unit">kcal</span></span>
+        <span class="stat__sub">TDEE {{ m.tdee | int }} kcal</span>
+      </div>
+    </div>
+    <div class="sum-bar__cell">
+      <div class="stat stat--green">
+        <span class="stat__label">Daily Protein</span>
+        <span class="stat__value">{{ m.protein_g | round(0) | int }}<span class="stat__unit">g</span></span>
+        <span class="stat__sub">{{ (m.protein_g / plan.user_summary.weight_kg) | round(1) }}g/kg bw</span>
+      </div>
+    </div>
+    <div class="sum-bar__cell">
+      <div class="stat stat--amber">
+        <span class="stat__label">BMI</span>
+        <span class="stat__value">{{ m.bmi }}<span class="stat__unit"> </span></span>
+        <span class="stat__sub">{{ m.bmi_category }}</span>
+      </div>
+    </div>
+    <div class="sum-bar__cell">
+      <div class="stat stat--violet">
+        <span class="stat__label">Hydration</span>
+        <span class="stat__value">{{ d.hydration_liters }}<span class="stat__unit">L</span></span>
+        <span class="stat__sub">{{ (d.hydration_liters * 4) | int }} glasses/day</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-column -->
+  <div class="two-col">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <!-- Health Metrics -->
+      <div class="card card--cyan animate-up delay-2 mb-24">
+        <div class="sec-hdr">
+          <div class="sec-hdr__icon sec-hdr__icon--cyan">📊</div>
+          <div><div class="sec-hdr__eye">Deterministic Engine · No LLM Math</div><div class="sec-hdr__title">Health Metrics</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap">
+          <!-- BMI ring -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            {% set bmi_col = "#00ff9d" if m.bmi_category=="Normal" else ("#ffb700" if m.bmi_category=="Overweight" else ("#ff4d6a" if m.bmi_category=="Obese" else "#9d7fff")) %}
+            {% set circ = 251.2 %}
+            {% set bmi_pct = [((m.bmi / 40) * 100), 100] | min %}
+            {% set dash = circ * (1 - bmi_pct / 100) %}
+            <div class="bmi-ring">
+              <svg width="86" height="86" viewBox="0 0 86 86">
+                <circle cx="43" cy="43" r="38" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="6"/>
+                <circle cx="43" cy="43" r="38" fill="none" stroke="{{ bmi_col }}"
+                        stroke-width="6" stroke-linecap="round"
+                        stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ dash }}"
+                        style="filter:drop-shadow(0 0 5px {{ bmi_col }}88)"/>
+              </svg>
+              <div class="bmi-ring__center">
+                <span class="bmi-ring__val" style="color:{{ bmi_col }}">{{ m.bmi }}</span>
+                <span class="bmi-ring__lbl">BMI</span>
+              </div>
+            </div>
+            <span class="tag {% if m.bmi_category=='Normal' %}tag--green{% elif m.bmi_category=='Overweight' %}tag--amber{% elif m.bmi_category=='Obese' %}tag--red{% else %}tag--violet{% endif %}">{{ m.bmi_category }}</span>
+          </div>
+          <!-- Metrics grid -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px 28px;flex:1">
+            {% for label, val, unit, sub, cls in [
+              ("BMR", m.bmr|int, "kcal", "Basal metabolic rate", "stat--cyan"),
+              ("TDEE", m.tdee|int, "kcal", "Total daily expenditure", "stat--green"),
+              ("Target", m.target_calories, "kcal", "Goal-adjusted", "stat--amber"),
+              ("Protein", m.protein_g|round(0)|int, "g", "Daily target", "stat--violet"),
+              ("Carbs", m.carbs_g|round(0)|int, "g", "Daily target", ""),
+              ("Fat", m.fat_g|round(0)|int, "g", "Daily target", "")
+            ] %}
+            <div class="stat {{ cls }}">
+              <span class="stat__label">{{ label }}</span>
+              <span class="stat__value" style="font-size:20px">{{ val }}<span class="stat__unit">{{ unit }}</span></span>
+              <span class="stat__sub">{{ sub }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% if m.medical_flags %}
+          <div class="divider"></div>
+          <div class="card__label">Medical Flags</div>
+          <div class="flex flex-wrap gap-8 mt-8">
+            {% for flag in m.medical_flags %}
+              <span class="tag {% if 'high' in flag or 'elevated' in flag or 'diabetic' in flag %}tag--amber{% elif 'deficiency' in flag or 'anemia' in flag or 'risk' in flag %}tag--red{% else %}tag--dim{% endif %}">⚑ {{ flag | replace('_',' ') }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Medical Biomarkers -->
+      {% if med and (med.cholesterol or med.hemoglobin or med.blood_sugar or med.alt or med.creatinine or med.iron or med.thyroid_tsh) %}
+      <div class="card animate-up delay-2 mb-24">
+        <div class="sec-hdr">
+          <div class="sec-hdr__icon sec-hdr__icon--amber">🩺</div>
+          <div><div class="sec-hdr__eye">Lab Report Parsed · {{ med.flags | length }} flag(s)</div><div class="sec-hdr__title">Medical Biomarkers</div></div>
+        </div>
+        {% macro lab(name, val, unit, lo, hi) %}
+          {% if val is not none %}
+            {% set st = "normal" if lo <= val <= hi else ("alert" if (val > hi * 1.15 or val < lo * 0.85) else "warning") %}
+            <div class="lab-item lab-item--{{ st }}">
+              <div class="lab-item__name">{{ name }}</div>
+              <div class="lab-item__val">{{ val | round(1) }}<span class="lab-item__unit">{{ unit }}</span></div>
+            </div>
+          {% endif %}
+        {% endmacro %}
+        <div class="lab-grid">
+          {{ lab("Cholesterol",   med.cholesterol,   "mg/dL", 0,   200) }}
+          {{ lab("LDL",           med.ldl,           "mg/dL", 0,   130) }}
+          {{ lab("HDL",           med.hdl,           "mg/dL", 40,  999) }}
+          {{ lab("Triglycerides", med.triglycerides, "mg/dL", 0,   150) }}
+          {{ lab("Blood Sugar",   med.blood_sugar,   "mg/dL", 70,  100) }}
+          {{ lab("HbA1c",         med.hba1c,         "%",     0,   5.7) }}
+          {{ lab("Hemoglobin",    med.hemoglobin,    "g/dL",  12,  17)  }}
+          {{ lab("TSH",           med.thyroid_tsh,   "mIU/L", 0.4, 4.5) }}
+          {{ lab("Vitamin D",     med.vitamin_d,     "ng/mL", 20,  80)  }}
+          {{ lab("Vitamin B12",   med.vitamin_b12,   "pg/mL", 200, 900) }}
+          {{ lab("Iron",          med.iron,          "µg/dL", 60,  170) }}
+          {{ lab("Ferritin",      med.ferritin,      "ng/mL", 12,  200) }}
+          {{ lab("ALT",           med.alt,           "U/L",   0,   56)  }}
+          {{ lab("AST",           med.ast,           "U/L",   0,   40)  }}
+          {{ lab("Creatinine",    med.creatinine,    "mg/dL", 0,   1.3) }}
+          {{ lab("Urea/BUN",      med.urea,          "mg/dL", 0,   20)  }}
+          {{ lab("Uric Acid",     med.uric_acid,     "mg/dL", 2.5, 7.0) }}
+          {{ lab("Sodium",        med.sodium,        "mEq/L", 136, 145) }}
+          {{ lab("Potassium",     med.potassium,     "mEq/L", 3.5, 5.0) }}
+        </div>
+        {% if med.blood_pressure %}
+          <div class="divider"></div>
+          <div class="flex items-center gap-12">
+            <span class="card__label">Blood Pressure</span>
+            <span class="tag {% if med.flags and 'hypertension' in med.flags %}tag--red{% else %}tag--green{% endif %}">🫀 {{ med.blood_pressure }} mmHg</span>
+          </div>
+        {% endif %}
+        {% if med.flags %}
+          <div class="divider"></div>
+          <div class="card__label">Active Flags</div>
+          <div class="flex flex-wrap gap-8 mt-8">
+            {% for f in med.flags %}<span class="tag tag--red">⚑ {{ f | replace('_',' ') }}</span>{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Diet Plan -->
+      <div class="card card--green animate-up delay-3 mb-24">
+        <div class="sec-hdr">
+          <div class="sec-hdr__icon sec-hdr__icon--green">🥗</div>
+          <div><div class="sec-hdr__eye">Hybrid Planner · Food DB + Python Math{% if ws %} + Web Research{% endif %}</div><div class="sec-hdr__title">Daily Diet Plan</div></div>
+          <span class="tag tag--green" style="margin-left:auto">{{ d.daily_calories }} kcal</span>
+        </div>
+
+        <!-- Macro bars -->
+        {% set tmg = d.daily_protein + d.daily_carbs + d.daily_fat %}
+        <div style="display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap">
+          {% for label, val, col, cls in [("Protein", d.daily_protein, "#00ff9d","green"),("Carbs", d.daily_carbs, "#9d7fff","violet"),("Fat", d.daily_fat, "#ffb700","amber")] %}
+          <div style="flex:1;min-width:110px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+              <span style="font-size:12px;color:var(--text-secondary)">{{ label }}</span>
+              <span style="font-family:var(--font-mono);font-size:12px;color:{{ col }}">{{ val | round(0) | int }}g</span>
+            </div>
+            <div class="progress progress--{{ cls }}"><div class="progress__fill" style="width:{{ (val / tmg * 100) | round(0) }}%"></div></div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:3px">{{ (val / tmg * 100) | round(0) | int }}%</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Meals -->
+        <div class="meal-list">
+          {% for meal in d.meals %}
+          <div class="meal-card" id="mc{{loop.index}}">
+            <div class="meal-card__hdr" onclick="toggleMeal('mc{{loop.index}}')">
+              <div class="meal-card__left">
+                <span class="meal-card__time">{{ meal.time }}</span>
+                <span class="meal-card__name">{{ meal.name }}</span>
+              </div>
+              <div class="meal-card__macros">
+                <span class="meal-card__macro"><strong>{{ meal.total_cal }}</strong> kcal</span>
+                <span class="meal-card__macro"><strong>{{ meal.total_prot | round(0) | int }}g</strong> prot</span>
+                <span class="meal-card__macro"><strong>{{ meal.total_carb | round(0) | int }}g</strong> carb</span>
+                <span class="meal-card__macro"><strong>{{ meal.total_fat | round(0) | int }}g</strong> fat</span>
+              </div>
+              <span class="meal-card__toggle">▼</span>
+            </div>
+            <div class="meal-card__body">
+              <table class="food-table">
+                <thead><tr><th>Food Item</th><th>Kcal</th><th>Prot</th><th>Carb</th><th>Fat</th><th>Fiber</th></tr></thead>
+                <tbody>
+                  {% for f in meal.foods %}
+                  <tr>
+                    <td>{{ f.name }}</td>
+                    <td>{{ f.calories }}</td>
+                    <td>{{ f.protein | round(1) }}g</td>
+                    <td>{{ f.carbs | round(1) }}g</td>
+                    <td>{{ f.fat | round(1) }}g</td>
+                    <td>{{ f.fiber | round(1) }}g</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if d.notes %}
+          <div class="divider"></div>
+          <div class="card__label mb-12">Diet Notes</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            {% for note in d.notes %}<div class="note-item">{{ note }}</div>{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Exercise Plan -->
+      <div class="card animate-up delay-4 mb-24">
+        <div class="sec-hdr">
+          <div class="sec-hdr__icon sec-hdr__icon--violet">🏋️</div>
+          <div><div class="sec-hdr__eye">Rule-Based · Goal + Medical Aware{% if ws %} + Research{% endif %}</div><div class="sec-hdr__title">Exercise Plan</div></div>
+          <span class="tag tag--violet" style="margin-left:auto">{{ e.weekly_days }}×/week</span>
+        </div>
+        {% if e.warnings %}
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px">
+            {% for w in e.warnings %}<div class="alert alert--warning"><span class="alert__icon">⚠</span><div>{{ w }}</div></div>{% endfor %}
+          </div>
+        {% endif %}
+        <div class="week-grid">
+          {% for day in e.workout_days %}
+            {% set is_rest = "rest" in day.focus | lower %}
+            <div class="day-card {% if is_rest %}day-card--rest{% endif %}" onclick="toggleDay('dd{{loop.index}}')">
+              <div class="day-card__day">{{ day.day }}</div>
+              <div class="day-card__focus">{{ day.focus }}</div>
+              <div class="flex items-center gap-8 mt-8 flex-wrap">
+                {% set il = day.intensity | lower %}
+                <span class="day-card__int {% if 'high' in il %}int--high{% elif 'moderate' in il %}int--moderate{% elif 'low' in il or 'very' in il %}int--low{% else %}int--none{% endif %}">{{ day.intensity }}</span>
+                <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted)">{{ day.duration }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% for day in e.workout_days %}
+          <div id="dd{{loop.index}}" style="display:none;margin-top:18px">
+            <div class="card__label mb-8">{{ day.day }}: {{ day.focus }}</div>
+            <div class="ex-list">
+              {% for ex in day.exercises %}
+              <div class="ex-item">
+                <span class="ex-item__name">{{ ex.name }}</span>
+                <span class="ex-item__detail">{% if ex.sets %}{{ ex.sets }}×{% endif %}{% if ex.reps %} {{ ex.reps }}{% endif %}{% if ex.duration %} {{ ex.duration }}{% endif %}{% if ex.rest %} · rest {{ ex.rest }}{% endif %}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+        {% if e.cardio_note %}
+          <div class="divider"></div>
+          <div class="alert alert--info"><span class="alert__icon">🏃</span><div>{{ e.cardio_note }}</div></div>
+        {% endif %}
+      </div>
+
+      <!-- Tavily Web Search Context -->
+      {% if ws %}
+      <div class="card animate-up delay-5 mb-24">
+        <div class="sec-hdr">
+          <div class="sec-hdr__icon sec-hdr__icon--violet">🔍</div>
+          <div><div class="sec-hdr__eye">Live Research · Tavily Web Search</div><div class="sec-hdr__title">Evidence Base</div></div>
+        </div>
+        {% for key, label, icon in [
+          ("nutrition_research","Nutrition Research","🥦"),
+          ("exercise_research","Exercise Research","💪"),
+          ("medical_advice","Medical Guidelines","🩺"),
+          ("calorie_research","Calorie Target Evidence","📊")
+        ] %}
+          {% if ws.get(key) %}
+          <div class="ws-card">
+            <div class="ws-card__label">{{ icon }} {{ label }}</div>
+            <div class="ws-card__text">{{ ws[key][:500] }}{% if ws[key]|length > 500 %}…{% endif %}</div>
+          </div>
+          {% endif %}
+        {% endfor %}
+        {% if ws.get("supplement_suggestions") %}
+          <div class="card__label mt-16 mb-8">Evidence-Based Supplements</div>
+          <div class="flex flex-wrap gap-8">
+            {% for s in ws.supplement_suggestions %}<span class="tag tag--violet">{{ s[:60] }}</span>{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div><!-- /left -->
+
+    <!-- SIDEBAR -->
+    <div>
+      <div class="sidebar__sticky">
+
+        <!-- Macro donut -->
+        <div class="card animate-up delay-3">
+          <div class="card__label mb-12">Macro Distribution</div>
+          {% set tkcal = (d.daily_protein * 4) + (d.daily_carbs * 4) + (d.daily_fat * 9) %}
+          {% set pp = (d.daily_protein * 4 / tkcal * 100) | round(0) | int %}
+          {% set cp = (d.daily_carbs  * 4 / tkcal * 100) | round(0) | int %}
+          {% set fp = (d.daily_fat    * 9 / tkcal * 100) | round(0) | int %}
+          {% set circ2 = 263.9 %}
+          {% set pl = circ2 * pp / 100 %}
+          {% set cl = circ2 * cp / 100 %}
+          {% set fl = circ2 * fp / 100 %}
+          <div class="macro-wrap">
+            <div style="position:relative;width:100px;height:100px;flex-shrink:0">
+              <svg width="100" height="100" viewBox="0 0 100 100" style="transform:rotate(-90deg)">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="10"/>
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#00ff9d" stroke-width="10" stroke-dasharray="{{ pl }} {{ circ2 - pl }}" stroke-dashoffset="0"/>
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#9d7fff" stroke-width="10" stroke-dasharray="{{ cl }} {{ circ2 - cl }}" stroke-dashoffset="{{ -pl }}"/>
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#ffb700" stroke-width="10" stroke-dasharray="{{ fl }} {{ circ2 - fl }}" stroke-dashoffset="{{ -(pl + cl) }}"/>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                <span style="font-size:13px;font-weight:800;color:var(--text-primary)">{{ d.daily_calories }}</span>
+                <span style="font-family:var(--font-mono);font-size:7px;color:var(--text-muted)">KCAL</span>
+              </div>
+            </div>
+            <div class="macro-legend">
+              {% for name, val, pct, col in [("Protein", d.daily_protein|round(0)|int, pp, "#00ff9d"),("Carbs", d.daily_carbs|round(0)|int, cp, "#9d7fff"),("Fat", d.daily_fat|round(0)|int, fp, "#ffb700")] %}
+              <div class="macro-legend__item">
+                <div class="macro-legend__dot" style="background:{{ col }}"></div>
+                <span class="macro-legend__name">{{ name }}</span>
+                <span class="macro-legend__val">{{ val }}g <span style="color:var(--text-muted);font-size:10px">({{ pct }}%)</span></span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Hydration -->
+        <div class="card animate-up delay-4">
+          <div class="card__label mb-8">Daily Hydration</div>
+          <div class="stat stat--cyan">
+            <span class="stat__value" style="font-size:30px">{{ d.hydration_liters }}<span class="stat__unit">L</span></span>
+          </div>
+          <div class="flex flex-wrap gap-4 mt-12">
+            {% for i in range((d.hydration_liters * 4) | int) %}<span style="font-size:17px">💧</span>{% endfor %}
+          </div>
+          <p class="mt-8 text-secondary" style="font-size:11px">{{ (d.hydration_liters * 4) | int }} × 250ml glasses/day</p>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="card animate-up delay-5">
+          <div class="card__label mb-12">{% if ws %}Web-Enriched {% endif %}Recommendations</div>
+          <div class="rec-list">
+            {% for rec in plan.recommendations %}
+            <div class="rec-item">
+              <span class="rec-item__num">{{ "%02d" | format(loop.index) }}</span>
+              <span class="rec-item__text">{{ rec }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Pipeline audit -->
+        <div class="card animate-up delay-6">
+          <div class="card__label mb-12">Pipeline Execution</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            {% set vr = plan.validation_result %}
+            {% set ws_avail = ws is not none %}
+            {% for icon, node, detail in [
+              ("📥","input_node","Profile loaded"),
+              ("📄","pdf_node","PDF " + ("parsed" if med and med.raw_text else "skipped")),
+              ("🧠","parser_node",(med.flags|length|string + " flags") if med else "No flags"),
+              ("⚕️","health_engine","BMI/BMR/TDEE computed"),
+              ("🔍","web_search",("Enriched" if ws_avail else "Skipped")),
+              ("🥗","diet_node",d.meals|length|string + " meals built"),
+              ("🏋️","exercise_node",e.weekly_days|string + " workout days"),
+              ("✅","validation","Passed" if (vr is none or vr.passed) else "Reviewed"),
+              ("✨","llm_node",plan.recommendations|length|string + " recommendations")
+            ] %}
+            <div class="audit-row">
+              <span style="font-size:13px">{{ icon }}</span>
+              <span class="audit-row__node">{{ node }}</span>
+              <span class="audit-row__detail">{{ detail }}</span>
+              <span class="audit-row__ok">✓</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /two-col -->
+
+</div><!-- /wrapper -->
+{% endblock %}
+
+{% block disclaimer %}{{ plan.disclaimer }}{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleMeal(id){document.getElementById(id).classList.toggle('expanded')}
+function toggleDay(id){
+  const el=document.getElementById(id);
+  const hidden=el.style.display==='none';
+  document.querySelectorAll('[id^="dd"]').forEach(d=>d.style.display='none');
+  if(hidden) el.style.display='block';
+}
+// Animate progress bars
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.progress__fill').forEach(el=>{
+    const w=el.style.width; el.style.width='0';
+    requestAnimationFrame(()=>setTimeout(()=>{el.style.width=w},120));
+  });
+  // Auto-expand first meal
+  const first=document.querySelector('.meal-card');
+  if(first) first.classList.add('expanded');
+});
+window.addEventListener('beforeprint',()=>{
+  document.querySelectorAll('.meal-card').forEach(c=>c.classList.add('expanded'));
+  document.querySelectorAll('[id^="dd"]').forEach(d=>d.style.display='block');
+});
+</script>
+{% endblock %}

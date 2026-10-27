@@ -1,0 +1,31 @@
+#python 3.11.9
+# Core API
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+python-dotenv
+aiofiles
+jinja2
+
+# LangGraph orchestration
+langgraph
+langchain-core
+
+# LLM - Groq (LLaMA 3)
+groq
+
+# Tavily web search
+tavily-python
+httpx
+
+# PDF processing
+pymupdf
+
+# OCR fallback
+Pillow
+pytesseract
+
+# Database
+sqlalchemy
+aiosqlite
